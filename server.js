@@ -6,6 +6,11 @@ var url     = require('url'),
     express = require('express'),
     app     = express();
 
+const DEFAULT_CONFIG_ITEMS = [
+  'GITHUB_APPLICATION_CLIENT_ID', 
+  'GITHUB_APPLICATION_CLIENT_SECRET'
+];
+
 var TRUNCATE_THRESHOLD = 10,
     REVEALED_CHARS = 3,
     REPLACEMENT = '***';
@@ -15,10 +20,16 @@ var TRUNCATE_THRESHOLD = 10,
 function loadConfig() {
   var config = JSON.parse(fs.readFileSync(__dirname+ '/config.json', 'utf-8'));
   log('Configuration');
+
+  var isValidConfig = true;
   for (var i in config) {
     var configItem = process.env[i.toUpperCase()] || config[i];
     if (typeof configItem === "string") {
       configItem = configItem.trim();
+
+      if (DEFAULT_CONFIG_ITEMS.indexOf(configItem) > -1) {
+        isValidConfig = false;
+      }
     }
     config[i] = configItem;
     if (i === 'oauth_client_id' || i === 'oauth_client_secret') {
@@ -27,6 +38,11 @@ function loadConfig() {
       log(i + ':', config[i]);
     }
   }
+
+  if (isValidConfig) {
+      console.log("Please set your environment variables or use config.json")
+  }
+
   return config;
 }
 
